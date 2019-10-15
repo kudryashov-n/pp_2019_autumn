@@ -8,7 +8,7 @@ std::vector<int> getRandomVector(unsigned int size) {
     std::vector<int> rand_vec(size);
     std::mt19937 int_gen;
     int_gen.seed(73);
-    for (int i = 0; i < size; i++) {
+    for (unsigned int i = 0; i < size; i++) {
         rand_vec[i] = int_gen() % 30;
     }
     return rand_vec;
@@ -16,7 +16,7 @@ std::vector<int> getRandomVector(unsigned int size) {
 
 int getVectorMinSequential(std::vector<int> in) {
     int min = in[0];
-    for (int i = 1; i < in.size(); i++) {
+    for (unsigned int i = 1; i < in.size(); i++) {
         if (in[i] < min) {
             min = in[i];
         }
