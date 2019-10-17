@@ -6,6 +6,5 @@
 
 std::vector<int> getRandomVector(unsigned int size);
 int getVectorMinParallel(std::vector<int>);
-int getVectorMinSequential(std::vector<int>);
 
 #endif  // MODULES_TASK_1_KUDRYASHOV_N_VECTOR_MIN_VECTOR_MIN_H_

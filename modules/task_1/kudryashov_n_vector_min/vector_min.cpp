@@ -14,16 +14,6 @@ std::vector<int> getRandomVector(unsigned int size) {
     return rand_vec;
 }
 
-int getVectorMinSequential(std::vector<int> in) {
-    int min = in[0];
-    for (unsigned int i = 1; i < in.size(); i++) {
-        if (in[i] < min) {
-            min = in[i];
-        }
-    }
-    return min;
-}
-
 int getVectorMinParallel(std::vector<int> in) {
     int size, rank, step, rest, min;
     int global_min;
