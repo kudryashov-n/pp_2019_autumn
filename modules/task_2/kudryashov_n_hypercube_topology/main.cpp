@@ -10,6 +10,7 @@ TEST(HCubeTopology, can_create_hcube_dim_1) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
     ASSERT_NO_THROW(Hcube = createHcube(1));
+    MPI_Comm_rank(Hcube, &rank);
 }
 
 TEST(HCubeTopology, can_create_hcube_dim_2) {
@@ -19,6 +20,7 @@ TEST(HCubeTopology, can_create_hcube_dim_2) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
     ASSERT_NO_THROW(Hcube = createHcube(2));
+    MPI_Comm_rank(Hcube, &rank);
 }
 
 TEST(HCubeTopology, can_create_hcube_dim_3) {
@@ -28,6 +30,7 @@ TEST(HCubeTopology, can_create_hcube_dim_3) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
     ASSERT_NO_THROW(Hcube = createHcube(3));
+    MPI_Comm_rank(Hcube, &rank);
 }
 
 TEST(HCubeTopology, can_create_hcube_dim_4) {
@@ -37,6 +40,7 @@ TEST(HCubeTopology, can_create_hcube_dim_4) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
     ASSERT_NO_THROW(Hcube = createHcube(4));
+    MPI_Comm_rank(Hcube, &rank);
 }
 
 TEST(HCubeTopology, throw_with_zero_dim) {
@@ -46,6 +50,7 @@ TEST(HCubeTopology, throw_with_zero_dim) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
     ASSERT_ANY_THROW(Hcube = createHcube(0));
+    MPI_Comm_rank(Hcube, &rank);
 }
 
 TEST(HCubeTopology, topology_check) {
@@ -96,6 +101,7 @@ TEST(HCubeTopology, dims_4_param_periods_check) {
                 break;
             }
         }
+        ASSERT_EQ(check, true);
     }
 }
 

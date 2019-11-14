@@ -21,3 +21,4 @@ MPI_Comm createHcube(unsigned int dim) {
 
     return hypercubeComm;
 }
+
