@@ -60,7 +60,7 @@ TEST(HCubeTopology, param_dims_check) {
 
     if (Hcube != MPI_COMM_NULL) {
         MPI_Cartdim_get(Hcube, &dims);
-        ASSERT_EQ(dims, dim);
+        ASSERT_EQ(dims, (int)dim);
     }
 }
 
