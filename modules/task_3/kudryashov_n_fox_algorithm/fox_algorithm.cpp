@@ -237,6 +237,8 @@ double* fox_mult(double* a, unsigned int a_size, double* b, unsigned int b_size)
             MPI_Barrier(inside);
         }
 
+        delete[] a_block;
+        delete[] b_block;
         MPI_Barrier(inside);
         MPI_Comm_free(&inside);
 
@@ -269,14 +271,23 @@ double* fox_mult(double* a, unsigned int a_size, double* b, unsigned int b_size)
                     }
                 }
 
+                delete[] temp_a;
+                delete[] temp_b;
                 return res_new;
             } else {
+                delete[] temp_a;
+                delete[] temp_b;
                 return res;
             }
         } else  {
+            delete[] temp_a;
+            delete[] temp_b;
+            delete[] res;
             return a;
         }
     }
+    delete[] temp_a;
+    delete[] temp_b;
     MPI_Barrier(inside);
     MPI_Comm_free(&inside);
     return a;
