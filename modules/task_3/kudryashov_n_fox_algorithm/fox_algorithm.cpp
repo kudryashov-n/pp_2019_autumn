@@ -41,6 +41,11 @@ double* fox_mult(double* a, unsigned int a_size, double* b, unsigned int b_size)
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
+    if (size == 1) {
+        double* c;
+        return c = subtask_matr_mult(a, a_size, b, b_size);
+    }
+
     if (!is_square(size) && static_cast<unsigned int>(size) < a_size * a_size) {
         unsigned int i = 1;
         while (i*i < static_cast<unsigned int>(size)) {
@@ -79,7 +84,7 @@ double* fox_mult(double* a, unsigned int a_size, double* b, unsigned int b_size)
         }
         // Left: not full.
         for (int i = save_size; i < static_cast<int>(a_size); i++) {
-            for (int j = 0; j < static_cast<int>(a_size); j++) {
+            for (int j = 0; j < save_size; j++) {
                 a[i*a_size+j] = 0.0;
             }
         }
