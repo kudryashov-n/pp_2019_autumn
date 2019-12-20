@@ -105,37 +105,6 @@ TEST(FOX, small_non_zero_matrix) {
     }
 }
 
-TEST(FOX, big_non_zero_matrix_1) {
-    const unsigned int N = 75;  // Matrix size.
-    int rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    bool equal = true;
-    std::vector<double> a(N * N);
-    std::vector<double> b(N * N);
-    std::vector<double> res_seq;
-    std::vector<double> res_fox;
-    for (unsigned int i = 0; i < N; i++) {
-        for (unsigned int j = 0; j < N; j++) {
-            a[i*N+j] = i*j;
-            b[i*N+j] = j * j;
-        }
-    }
-
-    res_seq = subtask_matr_mult(a, N, b, N);
-    res_fox = fox_mult(a, N, b, N);
-
-    if (rank == 0) {
-        for (unsigned int i = 0; i < N; i++) {
-            for (unsigned int j = 0; j < N; j++) {
-                if (res_seq[i*N+j] != res_fox[i*N+j]) {
-                    equal = false;
-                }
-            }
-        }
-        ASSERT_EQ(true, equal);
-    }
-}
-
 TEST(FOX, meduim_non_zero_matr_1) {
     const unsigned int N = 7;  // Matrix size.
     int rank;
