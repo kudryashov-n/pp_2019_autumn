@@ -21,9 +21,9 @@ std::vector<double> subtask_matr_mult(std::vector<double> a_block, unsigned int 
     std::vector<double> c(a_block_size * a_block_size);
     for (unsigned int i = 0; i < a_block_size; i++) {
         for (unsigned int j = 0; j < a_block_size; j++) {
-            c[i * a_block_size + j] = 0.0;
+            c.at(i * a_block_size + j) = 0.0;
             for (unsigned int k = 0; k < a_block_size; k++) {
-                c[i * a_block_size + j] += a_block[i * a_block_size + k] * b_block[k * a_block_size + j];
+                c.at(i * a_block_size + j) += a_block.at(i * a_block_size + k) * b_block.at(k * a_block_size + j);
             }
         }
     }
@@ -73,25 +73,25 @@ std::vector<double> fox_mult(std::vector<double> a, unsigned int a_size, std::ve
         // Saving A.
         for (int i = 0; i < save_size; i++) {
             for (int j = 0; j < save_size; j++) {
-                temp_a[i*save_size+j] = a[i*save_size+j];
+                temp_a.at(i*save_size+j) = a.at(i*save_size+j);
             }
         }
         a.resize(a_size * a_size);
         for (int i = 0; i < save_size; i++) {
             for (int j = 0; j < save_size; j++) {
-                a[i*a_size+j] = temp_a[i*save_size+j];
+                a.at(i*a_size+j) = temp_a.at(i*save_size+j);
             }
         }
         // Left: not full.
         for (int i = save_size; i < static_cast<int>(a_size); i++) {
             for (int j = 0; j < save_size; j++) {
-                a[i*a_size+j] = 0.0;
+                a.at(i*a_size+j) = 0.0;
             }
         }
         // Right: full.
         for (int i = 0; i < static_cast<int>(a_size); i++) {
             for (int j = save_size; j < static_cast<int>(a_size); j++) {
-                a[i*a_size+j] = 0.0;
+                a.at(i*a_size+j) = 0.0;
             }
         }
         // Finished creating new A.
@@ -99,26 +99,26 @@ std::vector<double> fox_mult(std::vector<double> a, unsigned int a_size, std::ve
         // Saving B.
         for (int i = 0; i < save_size; i++) {
             for (int j = 0; j < save_size; j++) {
-                temp_b[i*save_size+j] = b[i*save_size+j];
+                temp_b.at(i*save_size+j) = b.at(i*save_size+j);
             }
         }
         b.resize(a_size * a_size);
 
         for (int i = 0; i < save_size; i++) {
             for (int j = 0; j < save_size; j++) {
-                b[i*a_size+j] = temp_b[i*save_size+j];
+                b.at(i*a_size+j) = temp_b.at(i*save_size+j);
             }
         }
         // Left: not full.
         for (int i = save_size; i < static_cast<int>(a_size); i++) {
             for (int j = 0; j < save_size; j++) {
-                b[i*a_size+j] = 0.0;
+                b.at(i*a_size+j) = 0.0;
             }
         }
         // Right: full.
         for (int i = 0; i < static_cast<int>(a_size); i++) {
             for (int j = save_size; j < static_cast<int>(a_size); j++) {
-                b[i*a_size+j] = 0.0;
+                b.at(i*a_size+j) = 0.0;
             }
         }
         // Finished creating new B.
@@ -146,18 +146,18 @@ std::vector<double> fox_mult(std::vector<double> a, unsigned int a_size, std::ve
         int blocks_per_column = a_size / block_size;
         for (int i = 0; i < block_size; i++) {
             for (int j = 0; j < block_size; j++) {
-                a_block[block_size * i + j] = a[rank / blocks_per_row * block_size * a_size +
-                    ((rank + rank / blocks_per_row) % blocks_per_row) * block_size + i * a_size + j];
-                b_block[block_size * i + j] = b[((rank + (rank % blocks_per_column) * blocks_per_column) %
+                a_block.at(block_size * i + j) = a.at(rank / blocks_per_row * block_size * a_size +
+                    ((rank + rank / blocks_per_row) % blocks_per_row) * block_size + i * a_size + j);
+                b_block.at(block_size * i + j) = b.at(((rank + (rank % blocks_per_column) * blocks_per_column) %
                     (blocks_per_column * blocks_per_column))
-                        / blocks_per_row * block_size * a_size + rank % blocks_per_row * block_size + i * a_size + j];
+                        / blocks_per_row * block_size * a_size + rank % blocks_per_row * block_size + i * a_size + j);
                 // b_block form operation is the same as a_block form operation, but matrix b is transposed by blocks
             }
         }
         std::vector<double> res(a_size * a_size);
         for (int i = 0; i < static_cast<int>(a_size); i++) {
             for (int j = 0; j < static_cast<int>(a_size); j++) {
-                res[i * a_size + j] = 0.0;
+                res.at(i * a_size + j) = 0.0;
             }
         }
         // Initialization over
@@ -171,7 +171,7 @@ std::vector<double> fox_mult(std::vector<double> a, unsigned int a_size, std::ve
                 std::vector<double> recv_arr(block_size * block_size);
                 for (int i = 0; i < block_size; i++) {
                     for (int j = 0; j < block_size; j++) {
-                        res[i * a_size + j] += c[i * block_size +j];
+                        res.at(i * a_size + j) += c.at(i * block_size +j);
                     }
                 }
 
@@ -183,8 +183,8 @@ std::vector<double> fox_mult(std::vector<double> a, unsigned int a_size, std::ve
                     MPI_Recv(&recv_arr[0], block_size * block_size, MPI_DOUBLE, i, 0, inside, &status);
                     for (int d1 = 0; d1 < block_size; d1++) {
                         for (int d2 = 0; d2 < block_size; d2++) {
-                            res[block_size * a_size * coord_i + block_size*coord_j + d1*a_size + d2] +=
-                                recv_arr[d1 * block_size + d2];
+                            res.at(block_size * a_size * coord_i + block_size*coord_j + d1*a_size + d2) +=
+                                recv_arr.at(d1 * block_size + d2);
                         }
                     }
                 }
@@ -246,23 +246,23 @@ std::vector<double> fox_mult(std::vector<double> a, unsigned int a_size, std::ve
                 // Restoring result.
                 for (int i = 0; i < save_size; i++) {
                     for (int j = 0; j < save_size; j++) {
-                        res_new[i*save_size+j] = res[i*a_size+j];
+                        res_new.at(i*save_size+j) = res.at(i*a_size+j);
                     }
                 }
 
                 // Restoring A.
-                a.resize(save_size);
+                a.resize(save_size * save_size);
                 for (int i = 0; i < save_size; i++) {
                     for (int j = 0; j < save_size; j++) {
-                        a[i*save_size+j] = temp_a[i*save_size+j];
+                        a.at(i*save_size+j) = temp_a.at(i*save_size+j);
                     }
                 }
 
                 // Restoring B.
-                a.resize(save_size);
+                b.resize(save_size * save_size);
                 for (int i = 0; i < save_size; i++) {
                     for (int j = 0; j < save_size; j++) {
-                        b[i*save_size+j] = temp_b[i*save_size+j];
+                        b.at(i*save_size+j) = temp_b.at(i*save_size+j);
                     }
                 }
 
