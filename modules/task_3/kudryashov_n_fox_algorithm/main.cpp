@@ -1,13 +1,14 @@
 // Copyright 2019 Kudryashov Nikita
 #include <gtest-mpi-listener.hpp>
 #include <gtest/gtest.h>
+#include <vector>
 #include "./fox_algorithm.h"
 
 TEST(FOX, throw_size_not_equal) {
     const unsigned int N_1 = 10;
     const unsigned int N_2 = 20;
-    double* a = new double[N_1 * N_1];
-    double* b = new double[N_2 * N_2];
+    std::vector<double> a(N_1 * N_1);
+    std::vector<double> b(N_2 * N_2);
 
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -22,9 +23,9 @@ TEST(FOX, small_zero_matrix) {
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     bool equal = true;
-    double* a = new double[N * N];
-    double* b = new double[N * N];
-    double* c;
+    std::vector<double> a(N * N);
+    std::vector<double> b(N * N);
+    std::vector<double> c;
     for (unsigned int i = 0; i < N; i++) {
         for (unsigned int j = 0; j < N; j++) {
             a[i*N+j] = 0.0;
@@ -49,9 +50,9 @@ TEST(FOX, big_zero_matrix) {
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     bool equal = true;
-    double* a = new double[N * N];
-    double* b = new double[N * N];
-    double* c;
+    std::vector<double> a(N * N);
+    std::vector<double> b(N * N);
+    std::vector<double> c;
     for (unsigned int i = 0; i < N; i++) {
         for (unsigned int j = 0; j < N; j++) {
             a[i*N+j] = 0.0;
@@ -76,10 +77,10 @@ TEST(FOX, small_non_zero_matrix) {
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     bool equal = true;
-    double* a = new double[N * N];
-    double* b = new double[N * N];
-    double* res_seq;
-    double* res_fox;
+    std::vector<double> a(N * N);
+    std::vector<double> b(N * N);
+    std::vector<double> res_seq;
+    std::vector<double> res_fox;
     int k1 = 0;
     int k2 = 4;
     for (unsigned int i = 0; i < N; i++) {
@@ -109,13 +110,13 @@ TEST(FOX, big_non_zero_matrix_1) {
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     bool equal = true;
-    double* a = new double[N * N];
-    double* b = new double[N * N];
-    double* res_seq;
-    double* res_fox;
+    std::vector<double> a(N * N);
+    std::vector<double> b(N * N);
+    std::vector<double> res_seq;
+    std::vector<double> res_fox;
     for (unsigned int i = 0; i < N; i++) {
         for (unsigned int j = 0; j < N; j++) {
-            a[i*N+j] = i * j;
+            a[i*N+j] = i*j;
             b[i*N+j] = j * j;
         }
     }
@@ -140,10 +141,10 @@ TEST(FOX, meduim_non_zero_matr_1) {
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     bool equal = true;
-    double* a = new double[N * N];
-    double* b = new double[N * N];
-    double* res_seq;
-    double* res_fox;
+    std::vector<double> a(N * N);
+    std::vector<double> b(N * N);
+    std::vector<double> res_seq;
+    std::vector<double> res_fox;
     int k1 = 0;
     int k2 = 4;
     for (unsigned int i = 0; i < N; i++) {
@@ -173,10 +174,10 @@ TEST(FOX, meduim_non_zero_matr_2) {
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     bool equal = true;
-    double* a = new double[N * N];
-    double* b = new double[N * N];
-    double* res_seq;
-    double* res_fox;
+    std::vector<double> a(N * N);
+    std::vector<double> b(N * N);
+    std::vector<double> res_seq;
+    std::vector<double> res_fox;
     int k1 = 0;
     int k2 = 4;
     for (unsigned int i = 0; i < N; i++) {

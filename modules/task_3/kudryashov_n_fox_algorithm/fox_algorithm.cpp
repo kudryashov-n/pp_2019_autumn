@@ -2,6 +2,7 @@
 
 #include "../../../modules/task_3/kudryashov_n_fox_algorithm/fox_algorithm.h"
 #include <cmath>
+#include <vector>
 
 bool is_square(int size) {
     int i = 1;
@@ -15,8 +16,9 @@ bool is_square(int size) {
     return false;
 }
 
-double* subtask_matr_mult(double* a_block, unsigned int a_block_size, double* b_block, unsigned int b_block_size) {
-    double* c = new double[a_block_size * a_block_size];
+std::vector<double> subtask_matr_mult(std::vector<double> a_block, unsigned int a_block_size,
+        std::vector<double> b_block, unsigned int b_block_size) {
+    std::vector<double> c(a_block_size * a_block_size);
     for (unsigned int i = 0; i < a_block_size; i++) {
         for (unsigned int j = 0; j < a_block_size; j++) {
             c[i * a_block_size + j] = 0.0;
@@ -28,8 +30,8 @@ double* subtask_matr_mult(double* a_block, unsigned int a_block_size, double* b_
     return c;
 }
 
-double* fox_mult(double* a, unsigned int a_size, double* b, unsigned int b_size) {
-    if (a_size != b_size) {
+std::vector<double> fox_mult(std::vector<double> a, unsigned int a_size, std::vector<double> b, unsigned int b_size) {
+    if (a.size() != b.size()) {
         throw "Matrix must have equal size.";
     }
 
@@ -41,14 +43,9 @@ double* fox_mult(double* a, unsigned int a_size, double* b, unsigned int b_size)
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    if (size == 1) {
-        double* c;
-        return c = subtask_matr_mult(a, a_size, b, b_size);
-    }
-
     if (!is_square(size) && static_cast<unsigned int>(size) < a_size * a_size) {
-        unsigned int i = 1;
-        while (i*i < static_cast<unsigned int>(size)) {
+        int i = 1;
+        while (i*i < size) {
             i++;
         }
         i--;
@@ -61,10 +58,14 @@ double* fox_mult(double* a, unsigned int a_size, double* b, unsigned int b_size)
         }
     }
 
-    save_size = a_size;
-    double* temp_a = new double[save_size * save_size];
-    double* temp_b = new double[save_size * save_size];
+    if (size_inside == 1) {
+        std::vector<double> c;
+        return c = subtask_matr_mult(a, a_size, b, b_size);
+    }
 
+    save_size = static_cast<int>(a_size);
+    std::vector<double> temp_a(save_size * save_size, 0.0);
+    std::vector<double> temp_b(save_size * save_size, 0.0);
     if (a_size % ((unsigned int)sqrt(size_inside)) != 0) {
     // Creating matrix of new size and surrounding by zeros'.
         matr_size_changed = true;
@@ -75,8 +76,7 @@ double* fox_mult(double* a, unsigned int a_size, double* b, unsigned int b_size)
                 temp_a[i*save_size+j] = a[i*save_size+j];
             }
         }
-        delete[] a;
-        a = new double[a_size * a_size];
+        a.resize(a_size * a_size);
         for (int i = 0; i < save_size; i++) {
             for (int j = 0; j < save_size; j++) {
                 a[i*a_size+j] = temp_a[i*save_size+j];
@@ -89,7 +89,7 @@ double* fox_mult(double* a, unsigned int a_size, double* b, unsigned int b_size)
             }
         }
         // Right: full.
-        for (unsigned int i = 0; i < a_size; i++) {
+        for (int i = 0; i < static_cast<int>(a_size); i++) {
             for (int j = save_size; j < static_cast<int>(a_size); j++) {
                 a[i*a_size+j] = 0.0;
             }
@@ -102,8 +102,8 @@ double* fox_mult(double* a, unsigned int a_size, double* b, unsigned int b_size)
                 temp_b[i*save_size+j] = b[i*save_size+j];
             }
         }
-        delete[] b;
-        b = new double[a_size * a_size];
+        b.resize(a_size * a_size);
+
         for (int i = 0; i < save_size; i++) {
             for (int j = 0; j < save_size; j++) {
                 b[i*a_size+j] = temp_b[i*save_size+j];
@@ -121,7 +121,7 @@ double* fox_mult(double* a, unsigned int a_size, double* b, unsigned int b_size)
                 b[i*a_size+j] = 0.0;
             }
         }
-            // Finished creating new B.
+        // Finished creating new B.
     }
 
     int block_size = a_size / static_cast<int>(sqrt(size_inside));
@@ -137,9 +137,9 @@ double* fox_mult(double* a, unsigned int a_size, double* b, unsigned int b_size)
     MPI_Comm_rank(inside, &rank);
 
     if (color == 1) {
-        double* a_block = new double[block_size * block_size];
-        double* b_block = new double[block_size * block_size];
-        double* c;
+        std::vector<double> a_block(block_size * block_size);
+        std::vector<double> b_block(block_size * block_size);
+        std::vector<double> c;
 
         // Initializing process
         int blocks_per_row = a_size / block_size;
@@ -148,15 +148,15 @@ double* fox_mult(double* a, unsigned int a_size, double* b, unsigned int b_size)
             for (int j = 0; j < block_size; j++) {
                 a_block[block_size * i + j] = a[rank / blocks_per_row * block_size * a_size +
                     ((rank + rank / blocks_per_row) % blocks_per_row) * block_size + i * a_size + j];
-                b_block[block_size * i + j] = b[((rank +(rank % blocks_per_column) *
-                    blocks_per_column) % (blocks_per_column * blocks_per_column))/ blocks_per_row *
-                    block_size * a_size + rank % blocks_per_row * block_size + i * a_size + j];
+                b_block[block_size * i + j] = b[((rank + (rank % blocks_per_column) * blocks_per_column) %
+                    (blocks_per_column * blocks_per_column))
+                        / blocks_per_row * block_size * a_size + rank % blocks_per_row * block_size + i * a_size + j];
                 // b_block form operation is the same as a_block form operation, but matrix b is transposed by blocks
             }
         }
-        double* res = new double[a_size * a_size];
-        for (unsigned int i = 0; i < a_size; i++) {
-            for (unsigned int j = 0; j < a_size; j++) {
+        std::vector<double> res(a_size * a_size);
+        for (int i = 0; i < static_cast<int>(a_size); i++) {
+            for (int j = 0; j < static_cast<int>(a_size); j++) {
                 res[i * a_size + j] = 0.0;
             }
         }
@@ -168,7 +168,7 @@ double* fox_mult(double* a, unsigned int a_size, double* b, unsigned int b_size)
             MPI_Barrier(inside);
             c = subtask_matr_mult(a_block, block_size, b_block, block_size);
             if (rank == 0) {
-                double* recv_arr = new double[block_size * block_size];
+                std::vector<double> recv_arr(block_size * block_size);
                 for (int i = 0; i < block_size; i++) {
                     for (int j = 0; j < block_size; j++) {
                         res[i * a_size + j] += c[i * block_size +j];
@@ -180,16 +180,16 @@ double* fox_mult(double* a, unsigned int a_size, double* b, unsigned int b_size)
                 for (int i = 1; i < size_inside; i++) {
                     coord_i = i / blocks_per_row;
                     coord_j = i % blocks_per_column;
-                    MPI_Recv(recv_arr, block_size * block_size, MPI_DOUBLE, i, 0, inside, &status);
+                    MPI_Recv(&recv_arr[0], block_size * block_size, MPI_DOUBLE, i, 0, inside, &status);
                     for (int d1 = 0; d1 < block_size; d1++) {
                         for (int d2 = 0; d2 < block_size; d2++) {
-                            res[block_size * a_size * coord_i + block_size*coord_j + d1*a_size + d2]
-                                += recv_arr[d1 * block_size + d2];
+                            res[block_size * a_size * coord_i + block_size*coord_j + d1*a_size + d2] +=
+                                recv_arr[d1 * block_size + d2];
                         }
                     }
                 }
             } else {
-                MPI_Send(c, block_size * block_size, MPI_DOUBLE, 0, 0, inside);
+                MPI_Send(&c[0], block_size * block_size, MPI_DOUBLE, 0, 0, inside);
             }
 
             // Move
@@ -203,18 +203,18 @@ double* fox_mult(double* a, unsigned int a_size, double* b, unsigned int b_size)
             }
 
             MPI_Barrier(inside);
-            MPI_Isend(a_block, block_size * block_size, MPI_DOUBLE, rank - 1 + additive, 0, inside, &request);
+            MPI_Isend(&a_block[0], block_size * block_size, MPI_DOUBLE, rank - 1 + additive, 0, inside, &request);
             MPI_Barrier(inside);
 
-            if (rank + 1  > blocks_per_row * (rank / blocks_per_row)
-                    + blocks_per_row - 1) {  // Getting bigger than last in a row
+            // Getting bigger than last in a row
+            if (rank + 1  > blocks_per_row * (rank / blocks_per_row) + blocks_per_row - 1) {
                 additive = blocks_per_row;
             } else {
                 additive = 0;
             }
 
             MPI_Barrier(inside);
-            MPI_Irecv(a_block, block_size * block_size, MPI_DOUBLE, rank + 1 - additive, 0, inside, &request);
+            MPI_Irecv(&a_block[0], block_size * block_size, MPI_DOUBLE, rank + 1 - additive, 0, inside, &request);
             MPI_Barrier(inside);
 
             // B blocks move
@@ -228,34 +228,30 @@ double* fox_mult(double* a, unsigned int a_size, double* b, unsigned int b_size)
             }
 
             MPI_Barrier(inside);
-            MPI_Isend(b_block, block_size * block_size, MPI_DOUBLE, dest, 0, inside, &request);
+            MPI_Isend(&b_block[0], block_size * block_size, MPI_DOUBLE, dest, 0, inside, &request);
             MPI_Barrier(inside);
 
             MPI_Barrier(inside);
-            MPI_Irecv(b_block, block_size * block_size, MPI_DOUBLE,
+            MPI_Irecv(&b_block[0], block_size * block_size, MPI_DOUBLE,
                 (rank + blocks_per_column) % (blocks_per_row * blocks_per_column), 0, inside, &request);
             MPI_Barrier(inside);
         }
 
-        delete[] a_block;
-        delete[] b_block;
         MPI_Barrier(inside);
         MPI_Comm_free(&inside);
 
         if (rank == 0) {
             if (matr_size_changed) {
-                double* res_new = new double[save_size * save_size];
+                std::vector<double> res_new(save_size * save_size);
                 // Restoring result.
                 for (int i = 0; i < save_size; i++) {
                     for (int j = 0; j < save_size; j++) {
                         res_new[i*save_size+j] = res[i*a_size+j];
                     }
                 }
-                delete[] res;
 
                 // Restoring A.
-                delete[] a;
-                a = new double[save_size * save_size];
+                a.resize(save_size);
                 for (int i = 0; i < save_size; i++) {
                     for (int j = 0; j < save_size; j++) {
                         a[i*save_size+j] = temp_a[i*save_size+j];
@@ -263,31 +259,21 @@ double* fox_mult(double* a, unsigned int a_size, double* b, unsigned int b_size)
                 }
 
                 // Restoring B.
-                delete[] b;
-                b = new double[save_size * save_size];
+                a.resize(save_size);
                 for (int i = 0; i < save_size; i++) {
                     for (int j = 0; j < save_size; j++) {
                         b[i*save_size+j] = temp_b[i*save_size+j];
                     }
                 }
 
-                delete[] temp_a;
-                delete[] temp_b;
                 return res_new;
             } else {
-                delete[] temp_a;
-                delete[] temp_b;
                 return res;
             }
-        } else  {
-            delete[] temp_a;
-            delete[] temp_b;
-            delete[] res;
+        } else {
             return a;
         }
     }
-    delete[] temp_a;
-    delete[] temp_b;
     MPI_Barrier(inside);
     MPI_Comm_free(&inside);
     return a;
