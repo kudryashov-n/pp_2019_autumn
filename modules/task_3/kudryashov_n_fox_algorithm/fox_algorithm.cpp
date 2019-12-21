@@ -39,7 +39,6 @@ std::vector<double> fox_mult(std::vector<double> a, unsigned int a_size, std::ve
     int save_size;
     int size, rank, size_inside;
     MPI_Status status;
-    MPI_Request request;
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
@@ -162,10 +161,10 @@ std::vector<double> fox_mult(std::vector<double> a, unsigned int a_size, std::ve
         }
         // Initialization over
 
+        std::vector<double> temp_1(block_size * block_size), temp_2(block_size * block_size);
         // Subtask mult and move
         for (int k = 0; k < blocks_per_row; k++) {
             // Subtask mult and collecting the result
-            MPI_Barrier(inside);
             c = subtask_matr_mult(a_block, block_size, b_block, block_size);
             if (rank == 0) {
                 std::vector<double> recv_arr(block_size * block_size);
@@ -194,28 +193,29 @@ std::vector<double> fox_mult(std::vector<double> a, unsigned int a_size, std::ve
 
             // Move
             // A blocks move
-            int additive;
+            int additive_a_1, additive_a_2;
 
-            if (rank - 1  < blocks_per_row * (rank / blocks_per_row)) {  // Getting lesser than first in a row
-                additive = blocks_per_row;
+            // Getting lesser than first in a row
+            if (rank - 1  < blocks_per_row * (rank / blocks_per_row)) {
+                additive_a_1 = blocks_per_row;
             } else {
-                additive = 0;
+                additive_a_1 = 0;
             }
-
-            MPI_Barrier(inside);
-            MPI_Isend(&a_block[0], block_size * block_size, MPI_DOUBLE, rank - 1 + additive, 0, inside, &request);
-            MPI_Barrier(inside);
 
             // Getting bigger than last in a row
             if (rank + 1  > blocks_per_row * (rank / blocks_per_row) + blocks_per_row - 1) {
-                additive = blocks_per_row;
+                additive_a_2 = blocks_per_row;
             } else {
-                additive = 0;
+                additive_a_2 = 0;
             }
 
-            MPI_Barrier(inside);
-            MPI_Irecv(&a_block[0], block_size * block_size, MPI_DOUBLE, rank + 1 - additive, 0, inside, &request);
-            MPI_Barrier(inside);
+            MPI_Sendrecv(&a_block[0], block_size * block_size, MPI_DOUBLE, rank - 1 + additive_a_1, 0,
+                &temp_1[0], block_size * block_size, MPI_DOUBLE, rank + 1 - additive_a_2, 0, inside, &status);
+            for (int h = 0; h < block_size; h++) {
+                for (int t = 0; t < block_size; t++) {
+                    a_block[h * block_size + t] = temp_1[h * block_size + t];
+                }
+            }
 
             // B blocks move
             int dest;
@@ -227,14 +227,14 @@ std::vector<double> fox_mult(std::vector<double> a, unsigned int a_size, std::ve
                 dest = blocks_per_column * blocks_per_column + (rank - blocks_per_column);
             }
 
-            MPI_Barrier(inside);
-            MPI_Isend(&b_block[0], block_size * block_size, MPI_DOUBLE, dest, 0, inside, &request);
-            MPI_Barrier(inside);
-
-            MPI_Barrier(inside);
-            MPI_Irecv(&b_block[0], block_size * block_size, MPI_DOUBLE,
-                (rank + blocks_per_column) % (blocks_per_row * blocks_per_column), 0, inside, &request);
-            MPI_Barrier(inside);
+            MPI_Sendrecv(&b_block[0], block_size * block_size, MPI_DOUBLE, dest, 1,
+                &temp_2[0], block_size * block_size, MPI_DOUBLE,
+                (rank + blocks_per_column) % (blocks_per_row * blocks_per_column), 1, inside, &status);
+            for (int h = 0; h < block_size; h++) {
+                for (int t = 0; t < block_size; t++) {
+                    b_block[h * block_size + t] = temp_2[h * block_size + t];
+                }
+            }
         }
 
         MPI_Barrier(inside);

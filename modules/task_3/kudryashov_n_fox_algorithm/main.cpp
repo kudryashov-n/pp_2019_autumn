@@ -2,6 +2,7 @@
 #include <gtest-mpi-listener.hpp>
 #include <gtest/gtest.h>
 #include <vector>
+#include <iostream>
 #include "./fox_algorithm.h"
 
 TEST(FOX, throw_size_not_equal) {
@@ -170,6 +171,73 @@ TEST(FOX, meduim_non_zero_matr_2) {
         ASSERT_EQ(true, equal);
     }
 }
+
+TEST(FOX, big_non_zero_matr_1) {
+    const unsigned int N = 75;  // Matrix size.
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    bool equal = true;
+    std::vector<double> a(N * N);
+    std::vector<double> b(N * N);
+    std::vector<double> res_seq;
+    std::vector<double> res_fox;
+    int k1 = 0;
+    int k2 = 4;
+    for (unsigned int i = 0; i < N; i++) {
+        for (unsigned int j = 0; j < N; j++) {
+            a[i*N+j] = k1++;
+            b[i*N+j] = k2++;
+        }
+    }
+
+    res_seq = subtask_matr_mult(a, N, b, N);
+    res_fox = fox_mult(a, N, b, N);
+
+    if (rank == 0) {
+        for (unsigned int i = 0; i < N; i++) {
+            for (unsigned int j = 0; j < N; j++) {
+                if (res_seq[i*N+j] != res_fox[i*N+j]) {
+                    equal = false;
+                }
+            }
+        }
+        ASSERT_EQ(true, equal);
+    }
+}
+
+TEST(FOX, big_non_zero_matr_2) {
+    const unsigned int N = 103;  // Matrix size.
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    bool equal = true;
+    std::vector<double> a(N * N);
+    std::vector<double> b(N * N);
+    std::vector<double> res_seq;
+    std::vector<double> res_fox;
+    int k1 = 0;
+    int k2 = 4;
+    for (unsigned int i = 0; i < N; i++) {
+        for (unsigned int j = 0; j < N; j++) {
+            a[i*N+j] = k1++;
+            b[i*N+j] = k2++;
+        }
+    }
+
+    res_seq = subtask_matr_mult(a, N, b, N);
+    res_fox = fox_mult(a, N, b, N);
+
+    if (rank == 0) {
+        for (unsigned int i = 0; i < N; i++) {
+            for (unsigned int j = 0; j < N; j++) {
+                if (res_seq[i*N+j] != res_fox[i*N+j]) {
+                    equal = false;
+                }
+            }
+        }
+        ASSERT_EQ(true, equal);
+    }
+}
+
 
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
